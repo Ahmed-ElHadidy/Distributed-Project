@@ -1,0 +1,30 @@
+{
+  "name": "distributed-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "devStart": "nodemon ./Server/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahmed-ElHadidy/Distributed-Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ahmed-ElHadidy/Distributed-Project/issues"
+  },
+  "homepage": "https://github.com/Ahmed-ElHadidy/Distributed-Project#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  },
+  "dependencies": {
+    "ejs": "^3.1.7",
+    "express": "^4.18.1",
+    "socket.io": "^4.5.0",
+    "uuid": "^8.3.2"
+  }
+}
