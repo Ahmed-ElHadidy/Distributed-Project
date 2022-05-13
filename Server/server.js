@@ -27,18 +27,22 @@ app.get('/',(req,res)=>{
 });
 
 app.get('/:documentId',(req,res)=>{
-    res.render('./document/document.ejs',{users:['user1','user2','user3']})
+    // get document if t=it matches
+    // const index = allDocuments.findIndex((doc)=>req.params.documentId === doc.docId) ;
+    // const users = index === -1 ? [] :allDocuments[index].curUsers; 
+    res.render('./document/document.ejs',{});
 });
 app.post('/',(req,res)=>{
     let id = uuidv4();
     res.redirect(`/${id}`);
 });
  
-// handle a connection 
+// handle connections
 io.on('connection',(socket)=>{
 
     const deleteUser = (docId,userId)=>{
         const index = allDocuments.findIndex((doc)=>doc.id === docId );
+        if (index < 0) return ;
         if (allDocuments[index].curUsers.length - 1 <= 0){
             allDocuments[index].curUsers = [];
             allDocuments.splice(index,1);
@@ -46,7 +50,8 @@ io.on('connection',(socket)=>{
         else{
             const userIndex = allDocuments[index].curUsers.findIndex((id)=>id===userId);
             allDocuments[index].curUsers.splice(userIndex,1);
-            socket.emit('users_changed',allDocuments[index].curUsers);
+            // emiting new list of users
+            socket.nsp.to(socket.docId).emit('users_changed',allDocuments[index].curUsers); 
         }
     }
  
@@ -65,11 +70,13 @@ io.on('connection',(socket)=>{
         }
         socket.docId = docId;
         socket.userId = userId; 
-        console.log(allDocuments);
         socket.join(docId);
+        // emiting new list of users
+        index === -1 ? socket.nsp.to(socket.docId).emit('users_changed',allDocuments[allDocuments.length-1].curUsers) 
+        : socket.nsp.to(socket.docId).emit('users_changed',allDocuments[index].curUsers);
     }
 
-    
+
     socket.on('send_id',(docId,userId)=>{
         addUser(docId,socket.id); // change it to usersid
     });
