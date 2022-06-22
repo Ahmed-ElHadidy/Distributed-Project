@@ -3,11 +3,13 @@ const express = require('express');
 const { all } = require('express/lib/application');
 const http = require('http');
 const {Server} = require('socket.io');
-const {v4:uuidv4} = require('uuid');
-const Document = require('./Document object/Document')
+const {io} =  require('socket.io-client');
 
 //Setting up Port Number
-const PORTNUM = 3000 || process.env.PORT;
+const PORTNUM = 3001 || process.env.PORT;
+
+// Document Object to reprsent Document
+const DocumentObject = require('./Document object/documentobject')
 
 //Seting up express
 const app = express();
@@ -16,15 +18,21 @@ app.use(express.static('public'));
 
 // Creating a server and socket
 const server = http.createServer(app);
-const io = new Server(server,{cors:{origin:'*'}});
+const ioc = new Server(server,{cors:{origin:'*'}});
 
 
-const allDocuments = []
- 
-//basic routes
-app.get('/',(req,res)=>{
-    res.render('./index/index.ejs',{name:'yousef'});
-});
+//All Documents that a server hosts
+const Documents = []
+
+
+// server as a client
+//connect server to load balancer
+ const sock = io("http://localhost:3000")
+//regester the server on connection
+ sock.on('connect',()=>{
+    sock.emit('Regsteration',{'port':PORTNUM,'url':`http://localhost:${PORTNUM}`})
+ })
+
 
 app.get('/:documentId',(req,res)=>{
     // get document if t=it matches
@@ -32,14 +40,16 @@ app.get('/:documentId',(req,res)=>{
     // const users = index === -1 ? [] :allDocuments[index].curUsers; 
     res.render('./document/document.ejs',{});
 });
-app.post('/',(req,res)=>{
-    let id = uuidv4();
-    res.redirect(`/${id}`);
-});
  
-// handle connections
-io.on('connection',(socket)=>{
 
+
+
+
+
+// handle connections
+ioc.on('connection',(socket)=>{
+
+    // emit the number of active users
     const deleteUser = (docId,userId)=>{
         const index = allDocuments.findIndex((doc)=>doc.id === docId );
         if (index < 0) return ;
@@ -55,35 +65,31 @@ io.on('connection',(socket)=>{
         }
     }
  
-    const addUser = (docId,userId)=>{
-        //query my list for document first if it is there connect  to it else 
-        // query database  for document if its there retrive it and add it to list else
-        // create an new entry in database and  new entry in list for the new document
-
-        const index = allDocuments.findIndex((doc)=>doc.id === docId);    
+    const addUser = (docId,userId)=>{   
+        console.log(Documents)
+        let index = Documents.findIndex((document)=>document.id === docId)
         if (index === -1){
-        allDocuments.push(new Document(docId,0,[userId],[userId],''))
+            Documents.push(new DocumentObject(docId,1,[userId],''))
         }
         else{
-            allDocuments[index].curUsers.push(userId);
-            allDocuments[index].allUsers.push(userId);
+            Documents[index].curUsers.push(userId)
         }
-        socket.docId = docId;
-        socket.userId = userId; 
+        console.log(Documents)
         socket.join(docId);
-        // emiting new list of users
-        index === -1 ? socket.nsp.to(socket.docId).emit('users_changed',allDocuments[allDocuments.length-1].curUsers) 
-        : socket.nsp.to(socket.docId).emit('users_changed',allDocuments[index].curUsers);
     }
 
 
-    socket.on('send_id',(docId,userId)=>{
-        addUser(docId,socket.id); // change it to usersid
+    socket.on('Regetier_client',(docId,userId)=>{
+        addUser(docId,userId); 
+        // emiting the users active on the current document
+        index = Documents.findIndex((document)=>document.id === docId)
+        socket.nsp.in(docId).emit('Users_list',Documents[index].curUsers)
+
     });
 
     socket.on('disconnect',()=>{
         console.log('user disconnected');
-        deleteUser(socket.docId,socket.userId);
+        // deleteUser(socket.docId,socket.userId);
     });
 })
 
