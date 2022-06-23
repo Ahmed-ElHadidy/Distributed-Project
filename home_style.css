@@ -1,0 +1,97 @@
+body {
+    
+    background-image: url('EditorBG.jpeg');
+    background-size:cover;
+    background-repeat: no-repeat;
+  }
+  #addBtn:hover {
+    background-color: black;
+    transition: background-color 1.1s;
+    color: white;
+  }
+  #addBtn {
+    border: none;
+    text-decoration: none;
+  }
+
+  
+
+  #openBtn {
+    border: none;
+  }
+  #openBtn:hover {
+    background-color: black;
+    transition: background-color 1.1s;
+    color: white;
+  }
+  #openBtn:active {
+    background-color: burlywood;
+    transition: background-color 0.4s;
+    color: black;
+  }
+  #addBtn:active {
+    background-color: burlywood;
+    transition: background-color 0.4s;
+    color: black;
+  }
+
+  .modal-contents {
+	height: 200px;
+	width: 400px;
+	background-color: white;
+	text-align: center;
+	padding: 20px;
+	position: relative;
+	border-radius: 4px;
+}
+
+.bg-modal {
+	background-color: rgba(0, 0, 0, 0.8);
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+    left: 0;
+	display: none;
+	justify-content: center;
+	align-items: center;
+}
+
+input {
+	margin: 10px auto;
+	display: block;
+	width: 50%;
+	padding: 8px;
+	border: 1px solid gray;
+}
+.close {
+	position: absolute;
+	top: 0;
+	right: 10px;
+	font-size: 42px;
+	color: #333;
+	transform: rotate(45deg);
+	cursor: pointer;
+	
+
+}
+
+.button {
+	background-color: black;
+	border: 2px solid white;
+	border-radius: 30px;
+	text-decoration: none;
+	padding: 10px 28px;
+	color: white;
+	margin-top: 10px;
+	display: inline-block;
+	}
+
+.button:hover{
+
+    background-color: burlywood;
+    transition: background-color 0.4s;
+    color: black;
+}
+
+#

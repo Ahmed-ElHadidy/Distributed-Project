@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+   <link rel="stylesheet" href="home_style.css">
+    <script src="home.js"></script>
+  </head>
+  
+  
+  <body>
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+      "
+    >
+      <h1 style="color: black; margin-bottom: 200px; margin-top: 100px; font-size: 45px; " >
+        Text Editor
+      </h1>
+      <div
+        id="inputId"
+        style="display: flex; flex-direction: column; visibility: hidden"
+      >
+        <label for="">Please Enter Document ID</label>
+        <input
+          type="number"
+          name="id"
+          id="docId"
+          min="1"
+          max="10000000"
+          style="width: 140px; height: 20px"
+        />
+      </div>
+
+      <div style="display: flex; width: 300px; justify-content: space-between">
+        <button
+          id="addBtn"
+          style="
+            border-radius: 10px;
+            width: 120px;
+            height: 120px;
+            font-size: 22px;
+          "
+          onclick="creteNewDoc()"
+        >
+         New 
+        </button>
+
+        <button
+          id="openBtn"
+          style="
+            border-radius: 10px;
+            width: 120px;
+            height: 120px;
+            font-size: 22px;
+          "
+          onclick="openDoc()"
+        >
+          Open
+        </button>
+      </div>
+    </div>
+    <div class="bg-modal">
+      <div class="modal-contents">
+    
+        <div class="close" id="closeSign" onclick="closePopUp()">+</div>
+    
+        <form action="">
+          <label for="docID"> Enter Document ID </label>
+          <br>
+          <input id="docID" type="number" min="0" max="999999999" placeholder="Enter ID Here">
+          <a href="" class="button">Submit</a>
+        </form>
+    
+      </div>
+    </div>
+  </body>
+</html>
