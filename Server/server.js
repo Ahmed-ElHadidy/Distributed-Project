@@ -33,7 +33,9 @@ const Documents = []
     sock.emit('Regsteration',{'port':PORTNUM,'url':`http://localhost:${PORTNUM}`})
  })
 
-
+sock.on('disconnect',()=>{
+    console.log('server disconnected')
+})
 app.get('/:documentId',(req,res)=>{
     // get document if t=it matches
     // const index = allDocuments.findIndex((doc)=>req.params.documentId === doc.docId) ;
@@ -76,6 +78,8 @@ ioc.on('connection',(socket)=>{
         }
         console.log(Documents)
         socket.join(docId);
+        socket.docId = docId
+        socket.userId = userId
     }
 
 
@@ -90,6 +94,8 @@ ioc.on('connection',(socket)=>{
     socket.on('disconnect',()=>{
         console.log('user disconnected');
         // deleteUser(socket.docId,socket.userId);
+        console.log(socket.docId)
+        // sock.emit('User_disconnected',{})
     });
 })
 

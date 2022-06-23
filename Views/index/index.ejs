@@ -1,35 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home Page</title>
     <link rel="stylesheet" href="./css/index.css">
     <script src="./scripts/index.js"></script>
-</head>
+  </head>
+  
+  
+  <body>
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+      "
+    >
+      <h1 style="color: black; margin-bottom: 200px; margin-top: 100px; font-size: 45px; " >
+        Text Editor
+      </h1>
 
-<body>
-    <header>
-        <h1>Hello <%= locals.name %>
-        </h1>
-    </header>
-    <main>
-        <button id="CreateDocButton">Make Document</button>
+      <div style="display: flex; width: 300px; justify-content: space-between">
+        <button
+          id="CreateDocButton"
+          style="
+            border-radius: 10px;
+            width: 120px;
+            height: 120px;
+            font-size: 22px;
+          "
+        >
+         New 
+        </button>
 
-        <br>
-        <div>
-            <h4>
-                Join Document
-            </h4>
-            <input id="input" type="text">
-            <button id="joinButton">
-                Join
-            </button>
-        </div>
+        <button
+          id="openBtn"
+          style="
+            border-radius: 10px;
+            width: 120px;
+            height: 120px;
+            font-size: 22px;
+          "
+        >
+          Open
+        </button>
+      </div>
+    </div>
+    <div class="bg-modal">
+      <div class="modal-contents">
+    
+        <div class="close" id="closeSign" >+</div>
+    
+          <label for="input"> Enter Document ID </label>
+          <br>
+          <input id="input" type="text"  placeholder="Enter ID Here">
+          <button id="joinButton" class="button">Submit</button>
 
-    </main>
-</body>
-
+    
+      </div>
+    </div>
+  </body>
 </html>

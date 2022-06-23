@@ -77,9 +77,13 @@ app.get('/checkId',(req,res)=>{
 // listen to a server connection
 // regester the server to the balance loader 
 io.on('connection',(socket)=>{
-    console.log('a server connectd')
+    console.log(`a server connectd ${socket.id}`)
     socket.on('Regsteration',(arg)=>{
         ServerDocumentMaping.push(new ServerObject(socket.id,arg.url,arg.port,0,[]))
+    })
+
+    socket.on('disconnect',(reason)=>{
+        console.log(socket.id)
     })
 
     
