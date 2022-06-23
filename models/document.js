@@ -3,17 +3,20 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const documentSchema = new Schema({
-
-    docTitle: {
+    id:{
         type:String,
         required:true
     },
-    docVersion: {
-        type:Number,
+    version: {
+        type:String,
         required:true
     },
-    docContent: {
+    content: {
         type:String,
+        required:false
+    },
+    activeUsers: {
+        type: [String],
         required:false
     }
 }, {timestamps: true} );

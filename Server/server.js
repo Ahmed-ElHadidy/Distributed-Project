@@ -5,10 +5,10 @@ const http = require('http');
 const {Server} = require('socket.io');
 const {io} =  require('socket.io-client');
 const mongoose = require('mongoose');
-
+const Document = require('../models/document');
 //Setting up Port Number
 const PORTNUM = 3001 || process.env.PORT;
-console.log("connected to : " + String(PORTNUM));
+console.log("Connected to port: " + String(PORTNUM));
 // Document Object to reprsent Document
 const DocumentObject = require('./Document object/documentobject')
 
@@ -84,6 +84,7 @@ ioc.on('connection',(socket)=>{
         }
         else{
             Documents[index].curUsers.push(userId)
+            Document.findOneAndUpdate({id:docId}, {"$push":{activeUser:userId}})
         }
         console.log(Documents)
         socket.join(docId);

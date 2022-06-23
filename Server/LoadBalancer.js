@@ -7,8 +7,18 @@ const {v4:uuidv4} = require('uuid');
 //server object to represent a server
 const ServerObject = require('./Server object/serverobject')
 
+//mongoose
+const mongoose = require('mongoose');
+const Document = require('../models/document');
+// mongoDB connection
+const mongoURI = "mongodb+srv://doxegy:Tj64CVQDJF472wn2@doxcluster.bomjo.mongodb.net/DOX";
+mongoose.connect(mongoURI, {useNewUrlParser:true, useUnifiedTopology: true})
+    .then((result) => console.log("Connected to mongoDB") )
+    .catch((err)=>console.log(err));
+
 //Setting up Port Number
 const PORTNUM = 3000 || process.env.PORT;
+console.log("Connected to port: " + String(PORTNUM));
 
 
 //Seting up express
@@ -49,10 +59,27 @@ app.get('/getId',(req,res)=>{
     chosenServer.Documents.push(id)
 
     //database stuff
-
+    const document = new Document({
+        id: id,
+        version:"1",
+        content:"Hello from the loadbalancer",
+        activeUsers:["user1","user2","user3","user4"]
+    });
+    // Saving document to the database 
+    // 
+    document.save().then((result) => {
+            console.log("Added Successfully to the database!")
+            console.log(result);
+        }).catch((err)=> {
+            console.log(err)
+        });
 
     /*return results*/ 
-    res.json({'id':id,'url':chosenServer.url});
+    res.send({'id':id,'url':chosenServer.url});
+   
+   
+ 
+    
 });
 
 
@@ -66,11 +93,41 @@ app.get('/checkId',(req,res)=>{
     console.log(ServerDocumentMaping)
     if (exists !== -1){
         url = ServerDocumentMaping[exists].url
+        res.send({'url':url})
     }
     else{
         // check database (more database stuff)
-    }
-    res.send({'url':url}) 
+
+        Document.find({id:req.query.docId})
+            .then((doc)=>{
+                        console.log("ARRIVED FROM DATABASE!")
+                        console.log(doc);
+                        let min = 100000000
+                        let chosenServer = null
+
+                        // determine server to assign document to
+                        ServerDocumentMaping.forEach(async(server)=>
+                            {
+                                if (server.numberOfDocs < min){
+                                    chosenServer = server
+                                    min = server.numberOfDocs
+                                }
+                                chosenServer.numberOfDocs += 1
+                                chosenServer.Documents.push(doc[0]['id'])
+                            })
+                        url = chosenServer.url;
+                        console.log("url")
+                        res.send({'url':url})
+
+            })
+            .catch((err)=>{
+                        console.log("ERROR SAD")
+                        url = "invalid"
+                        res.send({'url':url})
+
+            });
+        }
+    
 
 })
 
