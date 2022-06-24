@@ -10,6 +10,8 @@ window.addEventListener('DOMContentLoaded', () => {
     socket.on('Users_list', (users) => {
         document.querySelector('#users').textContent = `Connected Users: ${users}`;
     })
+
+    //if a server fails
     socket.on('disconnect', (reason) => {
 
     })
