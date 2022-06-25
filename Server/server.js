@@ -5,7 +5,10 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { io } = require('socket.io-client');
 const mongoose = require('mongoose');
+const Delta = require('quill-delta')
 const Document = require('../models/document');
+
+
 //Setting up Port Number
 const PORTNUM = 3001 || process.env.PORT;
 console.log("Connected to port: " + String(PORTNUM));
@@ -48,14 +51,18 @@ sock.on('connect', () => {
     sock.emit('Regsteration', { 'port': PORTNUM, 'url': `http://localhost:${PORTNUM}` })
 })
 
+
+// if load balancer failed
 sock.on('disconnect', () => {
-    console.log('server disconnected')
+    console.log('load balancer disconnected')
 })
 
 
-app.get('/RegesterDocument', (req, res) => {
+
+app.get('/RegesterDocument', async (req, res) => {
     console.log('Requested a document')
-    Documents.push(new DocumentObject(req.query.docId, 1, [], ''))
+    let doc =  await Document.find({ id: req.query.docId })
+    Documents.push(new DocumentObject(req.query.docId, 1, [], new Delta(doc[0]['content'].ops)))
     console.log(Documents)
     res.send({ 'data': 'OK' })
 })
@@ -75,7 +82,6 @@ app.get('/:documentId', (req, res) => {
 // handle connections
 ioc.on('connection', (socket) => {
 
-    // emit the number of active users
     const deleteUser = (docId, userId) => {
         const index = Documents.findIndex((doc) => doc.id === docId);
         console.log(index)
@@ -100,12 +106,13 @@ ioc.on('connection', (socket) => {
     const addUser = async (docId, userId) => {
         let index = Documents.findIndex((document) => document.id === docId)
         if (index === -1) {
-            Documents.push(new DocumentObject(docId, 1, [userId], ''))
+            const delta = new Delta().insert('\n')
+            Documents.push(new DocumentObject(docId, 1, [userId], delta))
             //save in dataBase
             const document = new Document({
                 id: docId,
-                version: "1",
-                content: "",
+                version: 1,
+                content: delta,
                 activeUsers: [userId]
             });
             // Saving document to the database 
@@ -121,11 +128,12 @@ ioc.on('connection', (socket) => {
             console.log('updated database')
 
             Document.findOneAndUpdate({ id: docId }, { "$push": { activeUsers: userId } }).exec()
+
         }
         console.log(Documents)
         socket.join(docId);
         socket.docId = docId
-        socket.userId = userId
+        socket.userId = userId        
     }
 
 
@@ -136,9 +144,24 @@ ioc.on('connection', (socket) => {
         // emiting the users active on the current document
         index = Documents.findIndex((document) => document.id === docId)
         socket.nsp.in(docId).emit('Users_list', Documents[index].curUsers)
+        //send content to user
+        socket.emit('DocContent',Documents[index].curVersion,Documents[index].content)
 
     });
-
+    socket.on('Text_Update',(docId,userId,docVersion,newDelta)=>{
+        const index = Documents.findIndex((document) => document.id === docId)
+        const newDeltaConv = new Delta(newDelta.ops)
+        if (docVersion === Documents[index].curVersion){
+            
+            Documents[index].content = Documents[index].content.compose(newDeltaConv) 
+            console.log(Documents[index].content.ops)
+            Documents[index].curVersion += 1
+            Document.findOneAndUpdate({ id: docId }, { content: Documents[index].content }).exec()
+            socket.in(docId).emit('Update_DocContent',Documents[index].curVersion,Documents[index].content)
+        }
+        // Documents[index].content = newDoc
+        // 
+    })
     //fires when user disconnects OR I discoonectd from user
     socket.on('disconnect', () => {
         console.log('user disconnected');

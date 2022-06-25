@@ -8,11 +8,11 @@ const documentSchema = new Schema({
         required:true
     },
     version: {
-        type:String,
+        type:Number,
         required:true
     },
     content: {
-        type:String,
+        type:Object,
         required:false
     },
     activeUsers: {
