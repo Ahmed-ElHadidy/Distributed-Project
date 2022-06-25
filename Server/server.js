@@ -7,7 +7,7 @@ const { io } = require('socket.io-client');
 const mongoose = require('mongoose');
 const Delta = require('quill-delta')
 const Document = require('../models/document');
-
+const cors = require('cors')
 
 //Setting up Port Number
 const PORTNUM = 3001 || process.env.PORT;
@@ -21,6 +21,7 @@ const DocumentObject = require('./Document object/documentobject')
 //Seting up express
 const app = express();
 app.set('view engine', 'ejs');
+app.use(cors())
 app.use(express.static('public'));
 
 
@@ -61,8 +62,8 @@ sock.on('disconnect', () => {
 
 app.get('/RegesterDocument', async (req, res) => {
     console.log('Requested a document')
-    let doc =  await Document.find({ id: req.query.docId })
-    Documents.push(new DocumentObject(req.query.docId, 1, [], new Delta(doc[0]['content'].ops)))
+    let doc = await Document.find({ id: req.query.docId })
+    Documents.push(new DocumentObject(req.query.docId, 1, [], new Delta(doc[0]['content'].ops, [])))
     console.log(Documents)
     res.send({ 'data': 'OK' })
 })
@@ -89,7 +90,7 @@ ioc.on('connection', (socket) => {
             return
         //remove from database
         Document.findOneAndUpdate({ id: docId }, { "$pull": { activeUsers: userId } }).exec()
-        if (Documents[index].curUsers.length-1 === 0) {
+        if (Documents[index].curUsers.length - 1 === 0) {
             console.log('document is empty should remove it')
             Documents[index].curUsers = [];
             Documents.splice(index, 1);
@@ -107,7 +108,7 @@ ioc.on('connection', (socket) => {
         let index = Documents.findIndex((document) => document.id === docId)
         if (index === -1) {
             const delta = new Delta().insert('\n')
-            Documents.push(new DocumentObject(docId, 1, [userId], delta))
+            Documents.push(new DocumentObject(docId, 1, [userId], delta, []))
             //save in dataBase
             const document = new Document({
                 id: docId,
@@ -133,7 +134,7 @@ ioc.on('connection', (socket) => {
         console.log(Documents)
         socket.join(docId);
         socket.docId = docId
-        socket.userId = userId        
+        socket.userId = userId
     }
 
 
@@ -145,19 +146,54 @@ ioc.on('connection', (socket) => {
         index = Documents.findIndex((document) => document.id === docId)
         socket.nsp.in(docId).emit('Users_list', Documents[index].curUsers)
         //send content to user
-        socket.emit('DocContent',Documents[index].curVersion,Documents[index].content)
+        socket.emit('DocContent', Documents[index].curVersion, Documents[index].content)
 
     });
-    socket.on('Text_Update',(docId,userId,docVersion,newDelta)=>{
+    socket.on('Text_Update', (docId, userId, docVersion, newDelta) => {
         const index = Documents.findIndex((document) => document.id === docId)
         const newDeltaConv = new Delta(newDelta.ops)
-        if (docVersion === Documents[index].curVersion){
-            
-            Documents[index].content = Documents[index].content.compose(newDeltaConv) 
+        if (docVersion === Documents[index].curVersion) {
+            //keep track of history
+            Documents[index].history.push({ 'currentState': Documents[index].content, 'newDelta': newDeltaConv, 'version': Documents[index].curVersion })
+
+            Documents[index].content = Documents[index].content.compose(newDeltaConv)
             console.log(Documents[index].content.ops)
             Documents[index].curVersion += 1
             Document.findOneAndUpdate({ id: docId }, { content: Documents[index].content }).exec()
-            socket.in(docId).emit('Update_DocContent',Documents[index].curVersion,Documents[index].content)
+            socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+        }
+        else {
+            let counter = docVersion
+            const histIndex = Documents[index].history.findIndex((doc) => { doc.version === counter })
+            const doc = Documents[index].history[histIndex]
+            const update = doc.newDelta.transform(newDeltaConv, true)
+            const newRule = doc.newDelta.compose(update)
+            Documents[index].history[histIndex].newDelta = newRule
+            const newState = doc.currentState.compose(update)
+
+            if (counter + 1 === docVersion) {
+                Documents[index].content = newState
+                socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+            }
+            else {
+
+                while (counter < Documents[index].curVersion) {
+                    counter += 1
+                    let histIndexInLoop = Documents[index].history.findIndex((doc) => { doc.version === counter })
+                    let docInLopp = Documents[index].history[histIndexInLoop]
+                    docInLopp.currentState = newState
+
+                    newRule = newRule.transform(docInLopp.newDelta, false)
+                    docInLopp.newDelta = newRule
+                    newState = docInLopp.currentState.compose(newRule)
+                    if (counter + 1 === docVersion) {
+                        Documents[index].content = newState
+                        socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+
+                    }
+
+                }
+            }
         }
         // Documents[index].content = newDoc
         // 

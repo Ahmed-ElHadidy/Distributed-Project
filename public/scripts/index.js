@@ -28,20 +28,26 @@ window.addEventListener('DOMContentLoaded', () => {
 
             const LoadBalancerResponse = await fetch('/checkId?' + new URLSearchParams({ 'docId': input.value }))
             const LoadBalancerdata = await LoadBalancerResponse.json()
-            console.log(LoadBalancerdata)
             if (LoadBalancerdata.url === 'invalid') {
                 alert('invalid Document')
             }
             else {
                 if (LoadBalancerdata.firstConnect) {
-                    const r = new Request(LoadBalancerdata.url + "/RegesterDocument?" + new URLSearchParams({ 'docId': input.value }))
-                    console.log(r)
+                    let myHeaders = new Headers();
+                    myHeaders.append('Access-Control-Allow-Origin',LoadBalancerdata.url)
+
+                    let myInit = {
+                        method: 'GET',
+                        headers: myHeaders,
+                        mode: 'cors',
+                        cache: 'default'
+                      };
+
+                    const r = new Request(LoadBalancerdata.url + "/RegesterDocument?" + new URLSearchParams({ 'docId': input.value }),myInit)
                     const serverResponse = await fetch(r)
-                    console.log(serverResponse)
 
                     const serverData = await serverResponse.json()
 
-                    console.log(serverData)
                     if (serverData.data === 'OK') {
                         window.location.href = `${LoadBalancerdata.url}/${input.value}`
                     }
