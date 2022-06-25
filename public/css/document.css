@@ -34,4 +34,12 @@ body{
 
 }
 
+h1{
+    display: flex;
+}
+
+h1 div{
+    margin: 3px;
+}
+
 
