@@ -5,6 +5,17 @@ window.addEventListener('DOMContentLoaded', () => {
     const CreateDocButton = document.querySelector('#CreateDocButton')
     const closeButton = document.querySelector('#closeSign')
     const openBtn = document.querySelector('#openBtn')
+    // const userImage = document.querySelector('#userImage')
+
+    // if (localStorage.getItem('TextEditor_UserId') === null) {
+    //     localStorage.setItem('TextEditor_UserId', uuid.v4())
+    // }
+    // const userId = localStorage.getItem('TextEditor_UserId')
+
+    // // setup user avatar
+    // let svg = multiavatar(userId)
+    // userImage.innerHTML = svg
+
 
     closeButton.addEventListener('click', () => {
         document.querySelector('.bg-modal').style.display = "none";
@@ -34,25 +45,33 @@ window.addEventListener('DOMContentLoaded', () => {
             else {
                 if (LoadBalancerdata.firstConnect) {
                     let myHeaders = new Headers();
-                    myHeaders.append('Access-Control-Allow-Origin',LoadBalancerdata.url)
+                    myHeaders.append('Access-Control-Allow-Origin', LoadBalancerdata.url)
 
                     let myInit = {
                         method: 'GET',
                         headers: myHeaders,
                         mode: 'cors',
                         cache: 'default'
-                      };
+                    };
 
-                    const r = new Request(LoadBalancerdata.url + "/RegesterDocument?" + new URLSearchParams({ 'docId': input.value }),myInit)
-                    const serverResponse = await fetch(r)
+                    const r = new Request(LoadBalancerdata.url + "/RegesterDocument?" + new URLSearchParams({ 'docId': input.value }), myInit)
+                    let serverResponse
+                    let serverData
+                    try {
+                        serverResponse = await fetch(r)
 
-                    const serverData = await serverResponse.json()
+                        serverData = await serverResponse.json()
 
-                    if (serverData.data === 'OK') {
-                        window.location.href = `${LoadBalancerdata.url}/${input.value}`
+
+                        if (serverData.data === 'OK') {
+                            window.location.href = `${LoadBalancerdata.url}/${input.value}`
+                        }
+                        else {
+                            alert('An error occured')
+                        }
                     }
-                    else {
-                        alert('An error occured')
+                    catch (err) {
+                        alert('there was a proplem connecteing to the server')
                     }
                 }
                 else {

@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('TextEditor_UserId') === null) {
         localStorage.setItem('TextEditor_UserId', uuid.v4())
     }
-    const userId = uuid.v4()
+    const userId = localStorage.getItem('TextEditor_UserId')
     let docVersion = -1
 
 

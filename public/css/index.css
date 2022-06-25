@@ -1,7 +1,7 @@
 body {
     
     background-image: url('../Images/EditorBG.jpeg');
-    background-size:cover;
+    background-size: cover;
     background-repeat: no-repeat;
     height: 100vh;
   }
@@ -93,4 +93,11 @@ input {
     background-color: burlywood;
     transition: background-color 0.4s;
     color: black;
+}
+
+
+#userImage{
+  width: 150px;
+  height: 150px;
+  margin: 20px;
 }
