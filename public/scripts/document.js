@@ -38,16 +38,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     socket.on('Update_DocContent', (newDocVersion, content) => {
         try {
-            let temp1 = new Quill('#edit1')
-            let temp2 = new Quill('#edit2')
-            console.log(temp1)
-            let temp3 = temp1.editor.delta.compose(content)
+            // let temp1 = new Quill('#edit1')
+            // let temp2 = new Quill('#edit2')
+            // console.log(temp1)
+            // let temp3 = temp1.editor.delta.compose(content)
 
 
-            let updateConv = temp2.editor.delta.diff(temp3)
-            let update = quill.getContents().diff(updateConv)
+            // let updateConv = temp2.editor.delta.diff(temp3)
+            // let update = quill.getContents().diff(updateConv)
             docVersion = newDocVersion
-            quill.updateContents(update)
+            quill.setContents(content)
         } catch (err) {
             console.log('here')
         }
