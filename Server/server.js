@@ -155,43 +155,43 @@ ioc.on('connection', (socket) => {
         if (docVersion === Documents[index].curVersion) {
             //keep track of history
             Documents[index].history.push({ 'currentState': Documents[index].content, 'newDelta': newDeltaConv, 'version': Documents[index].curVersion })
-
             Documents[index].content = Documents[index].content.compose(newDeltaConv)
             console.log(Documents[index].content.ops)
             Documents[index].curVersion += 1
+
             Document.findOneAndUpdate({ id: docId }, { content: Documents[index].content }).exec()
             socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
         }
         else {
             let counter = docVersion
-            const histIndex = Documents[index].history.findIndex((doc) => { doc.version === counter })
+            console.log(counter)
+            const histIndex = Documents[index].history.findIndex((doc) =>  doc.version === counter )
+            console.log(histIndex)
             const doc = Documents[index].history[histIndex]
-            const update = doc.newDelta.transform(newDeltaConv, true)
-            const newRule = doc.newDelta.compose(update)
+            const updatedOp = doc.newDelta.transform(newDeltaConv, true)
+            let newRule = doc.newDelta.compose(updatedOp)
             Documents[index].history[histIndex].newDelta = newRule
-            const newState = doc.currentState.compose(update)
+            let newState = doc.currentState.compose(newRule)
 
-            if (counter + 1 === docVersion) {
+            if (counter + 1 === Documents[index].curVersion) {
                 Documents[index].content = newState
                 socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
             }
             else {
-
+                counter += 1
                 while (counter < Documents[index].curVersion) {
-                    counter += 1
-                    let histIndexInLoop = Documents[index].history.findIndex((doc) => { doc.version === counter })
+                
+                    let histIndexInLoop = Documents[index].history.findIndex((doc) =>  doc.version === counter )
                     let docInLopp = Documents[index].history[histIndexInLoop]
                     docInLopp.currentState = newState
-
-                    newRule = newRule.transform(docInLopp.newDelta, false)
+                    newRule = newDeltaConv.transform(docInLopp.newDelta, false)
                     docInLopp.newDelta = newRule
                     newState = docInLopp.currentState.compose(newRule)
-                    if (counter + 1 === docVersion) {
+                    if (counter + 1 ===  Documents[index].curVersion) {
                         Documents[index].content = newState
                         socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
-
                     }
-
+                    counter += 1
                 }
             }
         }
