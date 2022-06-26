@@ -37,50 +37,60 @@ window.addEventListener('DOMContentLoaded', () => {
     })
 
     socket.on('Update_DocContent', (newDocVersion, content) => {
-        docVersion = newDocVersion
-        quill.setContents(content)
+        try {
+            let temp1 = new Quill('#edit1')
+            let temp2 = new Quill('#edit2')
+            console.log(temp1)
+            let temp3 = temp1.editor.delta.compose(content)
+
+
+            let updateConv = temp2.editor.delta.diff(temp3)
+            let update = quill.getContents().diff(updateConv)
+            docVersion = newDocVersion
+            quill.updateContents(update)
+        } catch (err) {
+            console.log('here')
+        }
         console.log(quill.getContents())
     })
     //if a server fails
     socket.on('disconnect', (reason) => {
 
     })
+
+
     // setting up quill
+
     var toolbarOptions = [
-    ["bold", "italic", "underline", "strike"], // toggled buttons
-    ["blockquote", "code-block"],
+        ["bold", "italic", "underline", "strike"], // toggled buttons
+        ["blockquote", "code-block"],
 
-    [{ header: 1 }, { header: 2 }], // custom button values
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ script: "sub" }, { script: "super" }], // superscript/subscript
-    [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
-    [{ direction: "rtl" }], // text direction
+        [{ header: 1 }, { header: 2 }], // custom button values
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ script: "sub" }, { script: "super" }], // superscript/subscript
+        [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
+        [{ direction: "rtl" }], // text direction
 
-    [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ list: "ordered" }, { list: "bullet" }],
+        [{ size: ["small", false, "large", "huge"] }], // custom dropdown
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        [{ list: "ordered" }, { list: "bullet" }],
 
-    [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-    [{ font: [] }],
-    [{ align: [] }],
-    ["link", "image", "video"],
+        [{ color: [] }, { background: [] }], // dropdown with defaults from theme
+        [{ font: [] }],
+        [{ align: [] }],
+        ["link", "image", "video"],
 
-    ["clean"], // remove formatting button
-  ];
+        ["clean"], // remove formatting button
+    ];
     const quillSetup = () => new Quill("#editor", {
-        modules: {
-          toolbar: toolbarOptions,
+        theme: "snow", modules: {
+            toolbar: toolbarOptions,
         },
-        theme: "snow",
-      });
-      
+    })
     let quill = quillSetup()
-
-
     quill.on('text-change', (delta, olddelta, source) => {
         if (source !== "api") {
-            console.log(delta)
-
+            console.log(quill.getSelection())
             socket.emit('Text_Update', documentID, userId, docVersion, delta)
             docVersion += 1
         }

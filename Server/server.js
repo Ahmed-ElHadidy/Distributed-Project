@@ -184,12 +184,14 @@ ioc.on('connection', (socket) => {
                     let histIndexInLoop = Documents[index].history.findIndex((doc) =>  doc.version === counter )
                     let docInLopp = Documents[index].history[histIndexInLoop]
                     docInLopp.currentState = newState
+
                     newRule = newDeltaConv.transform(docInLopp.newDelta, false)
                     docInLopp.newDelta = newRule
                     newState = docInLopp.currentState.compose(newRule)
-                    if (counter + 1 ===  Documents[index].curVersion) {
+                    if (counter + 1 === Documents[index].curVersion) {
                         Documents[index].content = newState
                         socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+
                     }
                     counter += 1
                 }

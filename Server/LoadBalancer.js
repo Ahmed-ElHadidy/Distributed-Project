@@ -105,7 +105,7 @@ app.get('/checkId', (req, res) => {
                     url = chosenServer.url;
                 }
                 console.log(url)
-                res.send({ 'url': url ,'firstConnect':true})
+                res.send({ 'url': url, 'firstConnect': true })
 
             })
             .catch((err) => {
@@ -136,8 +136,8 @@ io.on('connection', (socket) => {
     socket.on('Document_Empty', (arg) => {
         console.log('removing document from server')
         const docId = arg.docId
-        const serverIndex = ServerDocumentMaping.findIndex((server) =>  {
-            return  server.id === socket.id
+        const serverIndex = ServerDocumentMaping.findIndex((server) => {
+            return server.id === socket.id
         })
         ServerDocumentMaping[serverIndex].numberOfDocs -= 1
         const documentIndex = ServerDocumentMaping[serverIndex].Documents.findIndex((document) => { document === docId })
@@ -152,7 +152,6 @@ io.on('connection', (socket) => {
         console.log(`${userId} disconncetd from document ${docId}`)
         console.log(ServerDocumentMaping)
     })
-
 })
 
 //listiening to connections to server
