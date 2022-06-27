@@ -4,6 +4,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const documentID = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
     let socket = io();
+    let Delta =  Quill.import('delta')
 
     if (localStorage.getItem('TextEditor_UserId') === null) {
         localStorage.setItem('TextEditor_UserId', uuid.v4())
@@ -33,25 +34,17 @@ window.addEventListener('DOMContentLoaded', () => {
     socket.on('DocContent', (newDocVersion, content) => {
         docVersion = newDocVersion
         quill.setContents(content)
-        console.log(docVersion)
     })
 
     socket.on('Update_DocContent', (newDocVersion, content) => {
         try {
-            // let temp1 = new Quill('#edit1')
-            // let temp2 = new Quill('#edit2')
-            // console.log(temp1)
-            // let temp3 = temp1.editor.delta.compose(content)
 
-
-            // let updateConv = temp2.editor.delta.diff(temp3)
-            // let update = quill.getContents().diff(updateConv)
+            const update = quill.getContents().diff(new Delta(content))
             docVersion = newDocVersion
-            quill.setContents(content)
+            quill.updateContents(update)
         } catch (err) {
             console.log('here')
         }
-        console.log(quill.getContents())
     })
     //if a server fails
     socket.on('disconnect', (reason) => {
@@ -90,7 +83,6 @@ window.addEventListener('DOMContentLoaded', () => {
     let quill = quillSetup()
     quill.on('text-change', (delta, olddelta, source) => {
         if (source !== "api") {
-            console.log(quill.getSelection())
             socket.emit('Text_Update', documentID, userId, docVersion, delta)
             docVersion += 1
         }

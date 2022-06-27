@@ -11,7 +11,6 @@ const cors = require('cors')
 
 //Setting up Port Number
 const PORTNUM = 3001 || process.env.PORT;
-console.log("Connected to port: " + String(PORTNUM));
 // Document Object to reprsent Document
 const DocumentObject = require('./Document object/documentobject')
 
@@ -61,10 +60,8 @@ sock.on('disconnect', () => {
 
 
 app.get('/RegesterDocument', async (req, res) => {
-    console.log('Requested a document')
     let doc = await Document.find({ id: req.query.docId })
     Documents.push(new DocumentObject(req.query.docId, 1, [], new Delta(doc[0]['content'].ops, [])))
-    console.log(Documents)
     res.send({ 'data': 'OK' })
 })
 
@@ -85,7 +82,6 @@ ioc.on('connection', (socket) => {
 
     const deleteUser = (docId, userId) => {
         const index = Documents.findIndex((doc) => doc.id === docId);
-        console.log(index)
         if (index < 0)
             return
         //remove from database
@@ -131,7 +127,6 @@ ioc.on('connection', (socket) => {
             Document.findOneAndUpdate({ id: docId }, { "$push": { activeUsers: userId } }).exec()
 
         }
-        console.log(Documents)
         socket.join(docId);
         socket.docId = docId
         socket.userId = userId
@@ -156,26 +151,22 @@ ioc.on('connection', (socket) => {
             //keep track of history
             Documents[index].history.push({ 'currentState': Documents[index].content, 'newDelta': newDeltaConv, 'version': Documents[index].curVersion })
             Documents[index].content = Documents[index].content.compose(newDeltaConv)
-            console.log(Documents[index].content.ops)
             Documents[index].curVersion += 1
-
             Document.findOneAndUpdate({ id: docId }, { content: Documents[index].content }).exec()
-            socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+            socket.nsp.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
         }
         else {
             let counter = docVersion
-            console.log(counter)
             const histIndex = Documents[index].history.findIndex((doc) =>  doc.version === counter )
-            console.log(histIndex)
             const doc = Documents[index].history[histIndex]
+
             const updatedOp = doc.newDelta.transform(newDeltaConv, true)
             let newRule = doc.newDelta.compose(updatedOp)
             Documents[index].history[histIndex].newDelta = newRule
             let newState = doc.currentState.compose(newRule)
-
             if (counter + 1 === Documents[index].curVersion) {
                 Documents[index].content = newState
-                socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+                socket.nsp.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
             }
             else {
                 counter += 1
@@ -190,7 +181,7 @@ ioc.on('connection', (socket) => {
                     newState = docInLopp.currentState.compose(newRule)
                     if (counter + 1 === Documents[index].curVersion) {
                         Documents[index].content = newState
-                        socket.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
+                        socket.nsp.in(docId).emit('Update_DocContent', Documents[index].curVersion, Documents[index].content)
 
                     }
                     counter += 1
