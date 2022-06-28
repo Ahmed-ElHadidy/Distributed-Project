@@ -158,6 +158,7 @@ ioc.on('connection', (socket) => {
 
 
     socket.on('Text_Update', (docId, userId, docVersion, newDelta) => {
+            console.log(newDelta)
             const index = Documents.findIndex((document) => document.id === docId)
             const newDeltaConv = new Delta(newDelta.ops)
             if (docVersion === Documents[index].curVersion) {

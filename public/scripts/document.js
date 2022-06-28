@@ -73,6 +73,8 @@ window.addEventListener('DOMContentLoaded', () => {
         socket.emit('Re-connection')
         connected = true
         hist.forEach((h) => {
+            console.log('in emit')
+            console.log(h.delta)
             socket.emit('Text_Update', documentID, userId, h.docVersion, h.delta)
         })
         hist = []
