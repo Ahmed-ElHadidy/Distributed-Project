@@ -76,6 +76,7 @@ window.addEventListener('DOMContentLoaded', () => {
             socket.emit('Text_Update', documentID, userId, h.docVersion, h.delta)
         })
         hist = []
+        window.location.href = `${window.location.href}`
     })
 
     // setting up quill
