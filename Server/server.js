@@ -216,7 +216,7 @@ ioc.on('connection', (socket) => {
         // deleteUser(socket.docId,socket.userId);
         sock.emit('User_disconnected', { 'docId': socket.docId, 'userId': socket.userId })
         socket.connected = false
-        setTimeout(() => { deleteUser(socket.docId, socket.userId) }, 60000)
+        setTimeout(() => { deleteUser(socket.docId, socket.userId) }, 2000)
 
 
 
