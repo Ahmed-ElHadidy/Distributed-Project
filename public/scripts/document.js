@@ -54,19 +54,26 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     })
     //if a server fails
-    socket.on('disconnect', (reason) => {
-        window.location.href = 'http://localhost:3000'
+    socket.on('disconnect', async (reason) => {
+        try {
+            let res = await fetch(`http://localhost:3000/isServerDown?docId=${documentID}`)
+            let data = await res.json()
+            if (data.res === 'YES') {
+                window.location.href = 'http://localhost:3000'
+            }
+        } catch (err) {
+            console.log(err)
+            connected = false
+            socket.socket.reconnect()
+
+        }
     })
 
-    socket.on('error', () => {
-        connected = false
-        socket.socket.reconnect()
-    })
 
-    socket.on('reconnect',()=>{
+    socket.on('reconnect', () => {
         socket.emit('Re-connection')
         connected = true
-        hist.forEach((h)=>{
+        hist.forEach((h) => {
             socket.emit('Text_Update', documentID, userId, h.docVersion, h.delta)
         })
         hist = []

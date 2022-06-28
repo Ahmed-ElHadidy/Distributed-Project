@@ -17,7 +17,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .catch((err) => console.log(err));
 
 //Setting up Port Number
-const PORTNUM =  3000 
+const PORTNUM = 3000
 console.log("Connected to port: " + String(PORTNUM));
 
 
@@ -39,16 +39,30 @@ app.get('/', (req, res) => {
     res.render('./index/index.ejs', { name: 'yousef' });
 });
 
-app.get('/makeSure',(req,res)=>{
-    let index = ServerDocumentMaping.findIndex((ser)=>{
-        let docIndex = ser.Documents.findIndex((doc)=>doc === req.query.docId )
+
+app.get('/isServerDown', async (req, res) => {
+    let index = ServerDocumentMaping.findIndex((ser) => {
+        let docIndex = ser.Documents.findIndex((doc) => doc === req.query.docId)
         return docIndex !== -1
     })
-    if (index !== -1){
-        res.send({'response':'OK'})
+    try {
+        let response = await fetch(`${ServerDocumentMaping[index].url}/down`)
+        let data = await response.json()
+        res.send({ 'res': data })
+    } catch (err) {
+        res.send({ 'res': 'YES' })
     }
-    else{
-        res.send({'response':'NO'})
+})
+app.get('/makeSure', (req, res) => {
+    let index = ServerDocumentMaping.findIndex((ser) => {
+        let docIndex = ser.Documents.findIndex((doc) => doc === req.query.docId)
+        return docIndex !== -1
+    })
+    if (index !== -1) {
+        res.send({ 'response': 'OK' })
+    }
+    else {
+        res.send({ 'response': 'NO' })
 
     }
 })
@@ -142,11 +156,11 @@ io.on('connection', (socket) => {
 
     // if a server fails or gets down
     socket.on('disconnect', (reason) => {
-        let index = ServerDocumentMaping.findIndex((ser)=>ser.id === socket.id)
-        ServerDocumentMaping[index].Documents.forEach((docId)=>{
-            Document.findOneAndUpdate({ id: docId },  { activeUsers: [] }).exec()
+        let index = ServerDocumentMaping.findIndex((ser) => ser.id === socket.id)
+        ServerDocumentMaping[index].Documents.forEach((docId) => {
+            Document.findOneAndUpdate({ id: docId }, { activeUsers: [] }).exec()
         })
-        ServerDocumentMaping.splice(index,1)
+        ServerDocumentMaping.splice(index, 1)
         console.log(ServerDocumentMaping)
     })
 
