@@ -69,6 +69,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
     socket.on('reconnect', () => {
+        console.log('hhhhhhhhhhhhhhhhhhh')
         socket.emit('Re-connection')
         connected = true
         hist.forEach((h) => {
