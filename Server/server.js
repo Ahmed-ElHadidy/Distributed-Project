@@ -8,9 +8,9 @@ const mongoose = require('mongoose');
 const Delta = require('quill-delta')
 const Document = require('../models/document');
 const cors = require('cors')
-
+const fetch = require('node-fetch')
 //Setting up Port Number
-const PORTNUM = 3001 || process.env.PORT;
+const PORTNUM = parseInt(process.argv[2]) || 3001 ;
 // Document Object to reprsent Document
 const DocumentObject = require('./Document object/documentobject')
 
@@ -103,6 +103,12 @@ ioc.on('connection', (socket) => {
     const addUser = async (docId, userId) => {
         let index = Documents.findIndex((document) => document.id === docId)
         if (index === -1) {
+            let res = await fetch(`http://localhost:3000/makeSure?docId=${docId}`)
+            let data = await res.json()
+            if(data.response != 'OK'){
+                socket.emit('invalidDoc')
+                return -1
+            }
             const delta = new Delta().insert('\n')
             Documents.push(new DocumentObject(docId, 1, [userId], delta, []))
             //save in dataBase
@@ -133,10 +139,13 @@ ioc.on('connection', (socket) => {
     }
 
 
-    socket.on('Regetier_client', (docId, userId) => {
-        addUser(docId, userId);
+    socket.on('Regetier_client', async(docId, userId) => {
 
-
+        let res = await addUser(docId, userId);
+        console.log(res)
+        if(res === -1){
+            return
+        }
         // emiting the users active on the current document
         index = Documents.findIndex((document) => document.id === docId)
         socket.nsp.in(docId).emit('Users_list', Documents[index].curUsers)

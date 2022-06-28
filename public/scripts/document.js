@@ -15,7 +15,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
     socket.emit('Regetier_client', documentID, userId);
-
+    socket.on('invalidDoc',()=>{
+        window.location.href = 'http://localhost:3000'
+    })
     socket.on('Users_list', (users) => {
         const h1 = document.querySelector('#users')
         h1.innerHTML = ''

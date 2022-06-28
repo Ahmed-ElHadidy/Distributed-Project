@@ -17,7 +17,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .catch((err) => console.log(err));
 
 //Setting up Port Number
-const PORTNUM = 3000 || process.env.PORT;
+const PORTNUM =  3000 
 console.log("Connected to port: " + String(PORTNUM));
 
 
@@ -39,7 +39,19 @@ app.get('/', (req, res) => {
     res.render('./index/index.ejs', { name: 'yousef' });
 });
 
+app.get('/makeSure',(req,res)=>{
+    let index = ServerDocumentMaping.findIndex((ser)=>{
+        let docIndex = ser.Documents.findIndex((doc)=>doc === req.query.docId )
+        return docIndex !== -1
+    })
+    if (index !== -1){
+        res.send({'response':'OK'})
+    }
+    else{
+        res.send({'response':'NO'})
 
+    }
+})
 
 // returns new Document Id and Url
 app.get('/getId', (req, res) => {
@@ -57,7 +69,7 @@ app.get('/getId', (req, res) => {
     // assign it to the server
     chosenServer.numberOfDocs += 1
     chosenServer.Documents.push(id)
-
+    console.log('new doc')
     /*return results*/
     res.send({ 'id': id, 'url': chosenServer.url });
 
