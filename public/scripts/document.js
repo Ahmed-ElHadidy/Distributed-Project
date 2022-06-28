@@ -1,5 +1,3 @@
-
-
 window.addEventListener('DOMContentLoaded', () => {
     const documentID = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
@@ -21,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     socket.emit('Regetier_client', documentID, userId);
     socket.on('invalidDoc', () => {
-        window.location.href = 'http://localhost:3000'
+        window.location.href = 'http://3.64.126.0:3000'
     })
     socket.on('Users_list', (users) => {
         const h1 = document.querySelector('#users')
@@ -44,22 +42,22 @@ window.addEventListener('DOMContentLoaded', () => {
     })
 
     socket.on('Update_DocContent', (newDocVersion, content) => {
-        try {
+            try {
 
-            const update = quill.getContents().diff(new Delta(content))
-            docVersion = newDocVersion
-            quill.updateContents(update)
-        } catch (err) {
-            console.log('here')
-        }
-    })
-    //if a server fails
-    socket.on('disconnect', async (reason) => {
+                const update = quill.getContents().diff(new Delta(content))
+                docVersion = newDocVersion
+                quill.updateContents(update)
+            } catch (err) {
+                console.log('here')
+            }
+        })
+        //if a server fails
+    socket.on('disconnect', async(reason) => {
         try {
-            let res = await fetch(`http://localhost:3000/isServerDown?docId=${documentID}`)
+            let res = await fetch(`http://3.64.126.0:3000/isServerDown?docId=${documentID}`)
             let data = await res.json()
             if (data.res === 'YES') {
-                window.location.href = 'http://localhost:3000'
+                window.location.href = 'http://3.64.126.0:3000'
             }
         } catch (err) {
             console.log(err)
@@ -103,7 +101,8 @@ window.addEventListener('DOMContentLoaded', () => {
         ["clean"], // remove formatting button
     ];
     const quillSetup = () => new Quill("#editor", {
-        theme: "snow", modules: {
+        theme: "snow",
+        modules: {
             toolbar: toolbarOptions,
         },
     })
@@ -116,8 +115,7 @@ window.addEventListener('DOMContentLoaded', () => {
             if (connected === false) {
                 console.log(hist)
                 hist.push({ 'docVersion': docVersion, 'delta': delta })
-            }
-            else {
+            } else {
                 socket.emit('Text_Update', documentID, userId, docVersion, delta)
             }
             docVersion += 1
