@@ -68,7 +68,7 @@ window.addEventListener('DOMContentLoaded', () => {
     })
 
 
-    socket.on('reconnect', () => {
+    socket.io.on('reconnect', () => {
         console.log('hhhhhhhhhhhhhhhhhhh')
         socket.emit('Re-connection')
         connected = true
