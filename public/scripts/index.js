@@ -53,7 +53,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         mode: 'cors',
                         cache: 'default'
                     };
-
+                    console.log('regesterd doc')
                     const r = new Request(LoadBalancerdata.url + "/RegesterDocument?" + new URLSearchParams({ 'docId': input.value }), myInit)
                     let serverResponse
                     let serverData

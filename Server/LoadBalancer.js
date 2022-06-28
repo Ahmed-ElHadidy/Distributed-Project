@@ -137,11 +137,17 @@ io.on('connection', (socket) => {
     console.log(`a server connectd ${socket.id}`)
     socket.on('Regsteration', (arg) => {
         ServerDocumentMaping.push(new ServerObject(socket.id, arg.url, arg.port, 0, []))
+        console.log(ServerDocumentMaping)
     })
 
     // if a server fails or gets down
     socket.on('disconnect', (reason) => {
-        console.log(socket.id)
+        let index = ServerDocumentMaping.findIndex((ser)=>ser.id === socket.id)
+        ServerDocumentMaping[index].Documents.forEach((docId)=>{
+            Document.findOneAndUpdate({ id: docId },  { activeUsers: [] }).exec()
+        })
+        ServerDocumentMaping.splice(index,1)
+        console.log(ServerDocumentMaping)
     })
 
     // if a document is empty remove it from datastructure

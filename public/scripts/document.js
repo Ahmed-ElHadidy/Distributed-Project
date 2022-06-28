@@ -4,18 +4,23 @@ window.addEventListener('DOMContentLoaded', () => {
     const documentID = window.location.href.substring(window.location.href.lastIndexOf('/') + 1);
 
     let socket = io();
-    let Delta =  Quill.import('delta')
-
+    let Delta = Quill.import('delta')
     if (localStorage.getItem('TextEditor_UserId') === null) {
         localStorage.setItem('TextEditor_UserId', uuid.v4())
     }
     const userId = uuid.v4()
     let docVersion = -1
+    let connected = false
+    let hist = []
 
+    socket.on('connect', () => {
 
+        connected = true
+        console.log(connected)
+    })
 
     socket.emit('Regetier_client', documentID, userId);
-    socket.on('invalidDoc',()=>{
+    socket.on('invalidDoc', () => {
         window.location.href = 'http://localhost:3000'
     })
     socket.on('Users_list', (users) => {
@@ -50,9 +55,22 @@ window.addEventListener('DOMContentLoaded', () => {
     })
     //if a server fails
     socket.on('disconnect', (reason) => {
-
+        window.location.href = 'http://localhost:3000'
     })
 
+    socket.on('error', () => {
+        connected = false
+        socket.socket.reconnect()
+    })
+
+    socket.on('reconnect',()=>{
+        socket.emit('Re-connection')
+        connected = true
+        hist.forEach((h)=>{
+            socket.emit('Text_Update', documentID, userId, h.docVersion, h.delta)
+        })
+        hist = []
+    })
 
     // setting up quill
 
@@ -82,10 +100,19 @@ window.addEventListener('DOMContentLoaded', () => {
             toolbar: toolbarOptions,
         },
     })
+
+
     let quill = quillSetup()
     quill.on('text-change', (delta, olddelta, source) => {
         if (source !== "api") {
-            socket.emit('Text_Update', documentID, userId, docVersion, delta)
+            console.log(window.navigator.onLine)
+            if (connected === false) {
+                console.log(hist)
+                hist.push({ 'docVersion': docVersion, 'delta': delta })
+            }
+            else {
+                socket.emit('Text_Update', documentID, userId, docVersion, delta)
+            }
             docVersion += 1
         }
     })

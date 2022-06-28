@@ -61,7 +61,9 @@ sock.on('disconnect', () => {
 
 app.get('/RegesterDocument', async (req, res) => {
     let doc = await Document.find({ id: req.query.docId })
-    Documents.push(new DocumentObject(req.query.docId, 1, [], new Delta(doc[0]['content'].ops, [])))
+    Documents.push(new DocumentObject(req.query.docId, 1, [], new Delta(doc[0]['content'].ops),[]))
+    console.log('respond to open')
+    console.log(Documents)
     res.send({ 'data': 'OK' })
 })
 
@@ -79,8 +81,10 @@ app.get('/:documentId', (req, res) => {
 
 // handle connections
 ioc.on('connection', (socket) => {
-
+    socket.connected = true
     const deleteUser = (docId, userId) => {
+        if(socket.connected === true)
+            return
         const index = Documents.findIndex((doc) => doc.id === docId);
         if (index < 0)
             return
@@ -142,7 +146,6 @@ ioc.on('connection', (socket) => {
     socket.on('Regetier_client', async(docId, userId) => {
 
         let res = await addUser(docId, userId);
-        console.log(res)
         if(res === -1){
             return
         }
@@ -151,13 +154,16 @@ ioc.on('connection', (socket) => {
         socket.nsp.in(docId).emit('Users_list', Documents[index].curUsers)
         //send content to user
         socket.emit('DocContent', Documents[index].curVersion, Documents[index].content)
-
     });
+
+
     socket.on('Text_Update', (docId, userId, docVersion, newDelta) => {
         const index = Documents.findIndex((document) => document.id === docId)
         const newDeltaConv = new Delta(newDelta.ops)
         if (docVersion === Documents[index].curVersion) {
             //keep track of history
+            console.log('index')
+            console.log(index)
             Documents[index].history.push({ 'currentState': Documents[index].content, 'newDelta': newDeltaConv, 'version': Documents[index].curVersion })
             Documents[index].content = Documents[index].content.compose(newDeltaConv)
             Documents[index].curVersion += 1
@@ -201,11 +207,19 @@ ioc.on('connection', (socket) => {
         // 
     })
     //fires when user disconnects OR I discoonectd from user
+    socket.on('error',()=>{
+        console.log('error')
+    })
+    socket.on('Re-connection',()=>{
+        socket.connected = true
+    })
     socket.on('disconnect', () => {
         console.log('user disconnected');
         // deleteUser(socket.docId,socket.userId);
         sock.emit('User_disconnected', { 'docId': socket.docId, 'userId': socket.userId })
-        deleteUser(socket.docId, socket.userId)
+        socket.connected = false
+        setTimeout(()=>{deleteUser(socket.docId, socket.userId)},2000)
+        
 
 
     });
